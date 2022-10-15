@@ -53,8 +53,8 @@ RSpec.describe MatchIds::IdFinder do
     end
 
     it "builds error message" do
-      expect(finder.error_message)
-        .to match(/Expected not to find the following ID keys/)
+      expect(finder.ids_found_error_message)
+        .to match(/to not have ID keys/)
     end
 
     context "when ignoring subs id" do
@@ -75,7 +75,7 @@ RSpec.describe MatchIds::IdFinder do
 
   RSpec.shared_examples "no ids present" do
     it "has no error message" do
-      expect(finder.error_message).to be_nil
+      expect(finder.ids_found_error_message).to be_nil
     end
 
     it "has no ID keys" do

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module MatchIds
+  # Finds ID keys in payload ignoring IDs provided `ignored` param
   class IdFinder
     attr_reader :payload, :ignored
 
@@ -10,13 +11,18 @@ module MatchIds
     end
 
     def nested_keys
-      @nested_keys ||= keys_with_ancestors
+      @nested_keys ||= keys_only(payload)
+                       .flatten.map do |hash|
+        { hash.keys.first => { ancestors: hash.values.first } }
+      end
     end
 
-    def error_message
+    def ids_found_error_message
       return unless id_keys.length.positive?
 
-      "Expected not to find the following ID keys: #{id_keys}"
+      msg = "Expected #{payload}"
+      msg += " with ignored #{ignored}" if ignored.length.positive?
+      "#{msg} to not have ID keys: #{id_keys}"
     end
 
     def id_keys
@@ -24,13 +30,6 @@ module MatchIds
     end
 
     private
-
-    def keys_with_ancestors
-      @keys_with_ancestors ||= keys_only(payload)
-                               .flatten.map do |hash|
-        { hash.keys.first => { ancestors: hash.values.first } }
-      end
-    end
 
     def keys_only(hash, path: [])
       hash.map do |key, value|
