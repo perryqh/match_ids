@@ -16,25 +16,40 @@ RSpec.describe MatchIds::IdFinder do
         name: "ok",
         subs: [{ id: "taco",
                  name: "bar" }],
-        perfect_ids: [1, 2, 3] }
+        perfect_ids: [1, 2, 3],
+        tesla: [
+          { id: true,
+            holly: "blue",
+            package: { name: "performance",
+                       package_id: "bx" } }
+        ] }
     end
 
     it "finds nested keys" do
       expect(finder.nested_keys)
-        .to eq([{ id: [] },
-                { location_id: [] },
-                { name: [] },
-                { subs: [] },
-                { id: [:subs] },
-                { name: [:subs] },
-                { perfect_ids: [] }])
+        .to eq([{ id: { ancestors: [] } },
+                { location_id: { ancestors: [] } },
+                { name: { ancestors: [] } },
+                { subs: { ancestors: [] } },
+                { id: { ancestors: [:subs] } },
+                { name: { ancestors: [:subs] } },
+                { perfect_ids: { ancestors: [] } },
+                { tesla: { ancestors: [] } },
+                { id: { ancestors: [:tesla] } },
+                { holly: { ancestors: [:tesla] } },
+                { package: { ancestors: [:tesla] } },
+                { name: { ancestors: %i[tesla package] } },
+                { package_id: { ancestors: %i[tesla package] } }])
     end
 
     it "finds id keys" do
       expect(finder.id_keys)
-        .to eq([{ id: [] }, { location_id: [] },
-                { id: [:subs] },
-                { perfect_ids: [] }])
+        .to eq([{ id: { ancestors: [] } },
+                { location_id: { ancestors: [] } },
+                { id: { ancestors: [:subs] } },
+                { perfect_ids: { ancestors: [] } },
+                { id: { ancestors: [:tesla] } },
+                { package_id: { ancestors: %i[tesla package] } }])
     end
 
     it "builds error message" do
@@ -44,12 +59,16 @@ RSpec.describe MatchIds::IdFinder do
 
     context "when ignoring subs id" do
       let(:ignored) do
-        [id: [:subs]]
+        [id: { ancestors: [:subs] }]
       end
 
       it "finds id keys" do
         expect(finder.id_keys)
-          .to eq([{ id: [] }, { location_id: [] }, { perfect_ids: [] }])
+          .to eq([{ id: { ancestors: [] } },
+                  { location_id: { ancestors: [] } },
+                  { perfect_ids: { ancestors: [] } },
+                  { id: { ancestors: [:tesla] } },
+                  { package_id: { ancestors: %i[tesla package] } }])
       end
     end
   end

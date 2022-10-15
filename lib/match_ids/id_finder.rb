@@ -6,11 +6,11 @@ module MatchIds
 
     def initialize(payload, ignored: [])
       @payload = payload.nil? ? [] : payload
-      @ignored = [ignored].flatten.compact
+      @ignored = ignored.nil? ? [] : ignored
     end
 
     def nested_keys
-      @nested_keys ||= keys_only(payload)
+      @nested_keys ||= keys_with_ancestors
     end
 
     def error_message
@@ -25,6 +25,13 @@ module MatchIds
 
     private
 
+    def keys_with_ancestors
+      @keys_with_ancestors ||= keys_only(payload)
+                               .flatten.map do |hash|
+        { hash.keys.first => { ancestors: hash.values.first } }
+      end
+    end
+
     def keys_only(hash, path: [])
       hash.map do |key, value|
         value = value.first if value.is_a?(Array)
@@ -34,7 +41,7 @@ module MatchIds
         else
           { key => path }
         end
-      end.flatten
+      end
     end
 
     def id_key?(key_val)
