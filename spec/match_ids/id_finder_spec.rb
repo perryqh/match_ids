@@ -71,6 +71,41 @@ RSpec.describe MatchIds::IdFinder do
                   { package_id: { ancestors: %i[tesla package] } }])
       end
     end
+
+    context "with all types of ids" do
+      let(:payload) do
+        { id: "foo",
+          location_id: "bar",
+          somethings_ids: "ok" }
+      end
+
+      it "finds id keys" do
+        expect(finder.id_keys)
+          .to eq([{ id: { ancestors: [] } },
+                  { location_id: { ancestors: [] } },
+                  { somethings_ids: { ancestors: [] } }])
+      end
+    end
+  end
+
+  context "a payload with ids" do
+    let(:payload) do
+      { id: 3,
+        name: "Test",
+        location_id: 44,
+        foo: { id: 8 } }
+    end
+
+    it "contains IDs" do
+      expect(payload).to have_id_keys
+    end
+
+    it "contains no unexpected IDs" do
+      expect(payload)
+        .not_to have_id_keys(ignored: [{ id: { ancestors: [] } },
+                                       { location_id: { ancestors: [] } },
+                                       { id: { ancestors: [:foo] } }])
+    end
   end
 
   RSpec.shared_examples "no ids present" do
