@@ -39,5 +39,52 @@ RSpec.describe MatchIds do
                            /\[{:id=>{:ancestors=>\[:fields]}}]/)
       end
     end
+
+    describe "ignored IDs" do
+      let(:payload) do
+        { name: "best burger",
+          id: 33,
+          franchises: [{ location: "Waco",
+                         location_id: 88,
+                         menu_additions: [{ name: "secret waco sauce",
+                                            id: "sws" }] }] }
+      end
+
+      context "when ignored all cases" do
+        let(:ignored) do
+          [{ id: { ancestors: [] } },
+           { location_id: { ancestors: [:franchises] } },
+           { id: { ancestors: %i[franchises menu_additions] } }]
+        end
+
+        it "finds no IDs" do
+          expect(payload).not_to have_id_keys(ignored: ignored)
+        end
+      end
+
+      context "when ancestors are incomplete" do
+        let(:ignored) do
+          [{ id: { ancestors: [] } },
+           { location_id: { ancestors: [:franchises] } },
+           { id: { ancestors: %i[menu_additions] } }]
+        end
+
+        it "finds IDs" do
+          expect(payload).to have_id_keys(ignored: ignored)
+        end
+      end
+
+      context "when ancestors are out of order" do
+        let(:ignored) do
+          [{ id: { ancestors: [] } },
+           { location_id: { ancestors: [:franchises] } },
+           { id: { ancestors: %i[menu_additions franchises] } }]
+        end
+
+        it "finds IDs" do
+          expect(payload).to have_id_keys(ignored: ignored)
+        end
+      end
+    end
   end
 end

@@ -3,10 +3,12 @@
 module MatchIds
   # Finds ID keys in payload ignoring IDs provided `ignored` param
   class IdFinder
-    attr_reader :payload, :ignored
+    attr_reader :payload, :ignored, :payload_is_array
+
+    ROOT_WHEN_ARRAY = :root
 
     def initialize(payload, ignored: [])
-      @payload = payload.nil? ? [] : payload
+      @payload = normalized_payload(payload)
       @ignored = ignored.nil? ? [] : ignored
     end
 
@@ -31,15 +33,35 @@ module MatchIds
 
     private
 
+    def normalized_payload(payload)
+      return {} if payload.nil?
+
+      if payload.is_a?(Array)
+        @payload_is_array = true
+        { ROOT_WHEN_ARRAY => payload }
+      else
+        payload
+      end
+    end
+
     def keys_only(hash, path: [])
       hash.map do |key, value|
         value = value.first if value.is_a?(Array)
 
         if value.is_a?(Hash)
-          [{ key => path }, [keys_only(value, path: path + [key])]]
+          new_path = append_path_name(key, path)
+          [{ key => path }, [keys_only(value, path: new_path)]]
         else
           { key => path }
         end
+      end
+    end
+
+    def append_path_name(key, path)
+      if key == ROOT_WHEN_ARRAY && path.empty? && payload_is_array
+        path
+      else
+        path + [key]
       end
     end
 

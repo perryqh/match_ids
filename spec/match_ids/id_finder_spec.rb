@@ -88,12 +88,12 @@ RSpec.describe MatchIds::IdFinder do
     end
   end
 
-  context "a payload with ids" do
+  context "when payload is an array of hashes" do
     let(:payload) do
-      { id: 3,
-        name: "Test",
-        location_id: 44,
-        foo: { id: 8 } }
+      [{ id: 3,
+         name: "Test",
+         location_id: 44,
+         foo: { id: 8 } }]
     end
 
     it "contains IDs" do
